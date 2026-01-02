@@ -22,6 +22,10 @@ dotenv.config();
 initSentry();
 
 const app = express();
+
+// Trust proxy for Render/Vercel/Cloudflare (required for rate limiting and IP detection)
+app.set('trust proxy', 1);
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
