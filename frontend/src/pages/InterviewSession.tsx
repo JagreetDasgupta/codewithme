@@ -22,10 +22,10 @@ import SimplePeer from 'simple-peer';
 import axios from 'axios';
 import ChatInterface from '../components/ChatInterface';
 import DatabasePanel from '../components/DatabasePanel';
-import PlaybackControls, { KeystrokeEvent, PlaybackControlsHandle } from '../components/PlaybackControls';
+import PlaybackControls, { PlaybackControlsHandle } from '../components/PlaybackControls';
 import QuestionBank, { Question } from '../components/QuestionBank';
 import Whiteboard, { WhiteboardHandle } from '../components/Whiteboard';
-import { FiDatabase, FiHelpCircle, FiEdit3, FiPlay } from 'react-icons/fi';
+import { FiHelpCircle, FiEdit3, FiPlay } from 'react-icons/fi';
 
 // Extend window for Monaco access
 declare global {
@@ -597,18 +597,18 @@ const InterviewSession: React.FC = () => {
   const [admitted, setAdmitted] = useState(false);
   const [waitingForHost, setWaitingForHost] = useState(false);
   const [waitingMessage, setWaitingMessage] = useState('');
-  const [waitingRoom, setWaitingRoom] = useState<{ socketId: string; userId: string; username: string; requestedAt: Date }[]>([]);
+  const [_waitingRoom, setWaitingRoom] = useState<{ socketId: string; userId: string; username: string; requestedAt: Date }[]>([]);
   const [admissionRequests, setAdmissionRequests] = useState<{ socketId: string; userId: string; username: string; requestedAt: Date }[]>([]);
   const [autoAdmit, setAutoAdmit] = useState(false);
 
-  const [highContrast, setHighContrast] = useState(false);
+  const [_highContrast, setHighContrast] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [joinProgress, setJoinProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
   const [ready, setReady] = useState(false);
 
   // Tab state for left panel (Chat, Questions, Whiteboard)
-  const [leftPanelTab, setLeftPanelTab] = useState<'chat' | 'questions' | 'whiteboard'>('chat');
+  const [leftPanelTab, _setLeftPanelTab] = useState<'chat' | 'questions' | 'whiteboard'>('chat');
   // Tab state for right panel (Video, Output, Database, Playback)
   const [rightPanelTab, setRightPanelTab] = useState<'video' | 'output' | 'database' | 'playback'>('video');
 
@@ -617,7 +617,7 @@ const InterviewSession: React.FC = () => {
   const whiteboardRef = useRef<WhiteboardHandle>(null);
 
   // Current question loaded from QuestionBank
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
+  const [_currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
 
 
   // UI State
@@ -632,7 +632,7 @@ const InterviewSession: React.FC = () => {
   const [renamingFileIndex, setRenamingFileIndex] = useState<number | null>(null);
   const [renameFileName, setRenameFileName] = useState('');
   const [sessionPassword, setSessionPassword] = useState('');
-  const [sessionTitle, setSessionTitle] = useState('');
+  const [_sessionTitle, setSessionTitle] = useState('');
   const [problemStatement, setProblemStatement] = useState('');
   const [activeTab, setActiveTab] = useState<'problem' | 'chat' | 'questions' | 'whiteboard'>('problem');
 
@@ -2671,7 +2671,7 @@ const InterviewSession: React.FC = () => {
               suggestOnTriggerCharacters: true,
               acceptSuggestionOnEnter: 'on',
               tabCompletion: 'on',
-              wordBasedSuggestions: 'allDocuments',
+              wordBasedSuggestions: true,
               parameterHints: { enabled: true },
               suggest: {
                 showMethods: true,
@@ -2718,12 +2718,12 @@ const InterviewSession: React.FC = () => {
 
               // Error Detection (I.F)
               glyphMargin: true,
-              lightbulb: { enabled: 'on' },
+              lightbulb: { enabled: true },
 
               // Readability
               renderWhitespace: 'boundary',
               renderLineHighlight: 'all',
-              renderIndentGuides: true,
+              // renderIndentGuides is deprecated, using guides.indentation instead
               guides: {
                 bracketPairs: true,
                 indentation: true,
@@ -2750,7 +2750,7 @@ const InterviewSession: React.FC = () => {
 
               // Selection
               selectionHighlight: true,
-              occurrencesHighlight: 'singleFile',
+              occurrencesHighlight: true,
 
               // Cursor
               cursorBlinking: 'smooth',

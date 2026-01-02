@@ -211,7 +211,7 @@ const SubmitButton = styled.button<{ $loading?: boolean }>`
   }
 `;
 
-const Divider = styled.div`
+const _Divider = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
