@@ -1889,30 +1889,32 @@ const InterviewSession: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showLanguageMenu]);
 
-  useEffect(() => {
-    const fetchLanguages = async () => {
-      try {
-        const res = await axios.get('/api/v1/languages');
-        const langs = res?.data?.data?.languages || res?.data?.languages || [];
-        if (Array.isArray(langs) && langs.length) {
-          setLanguages(langs.map((l: any) => ({
-            id: l.id,
-            name: l.name,
-            icon: l.icon,
-            color: l.color,
-            category: l.category,
-            monacoLanguage: l.monacoLanguage
-          })));
-          if (!langs.find((l: any) => l.id === language)) {
-            setLanguage(langs[0].id);
-          }
-        }
-      } catch (e) {
-        // leave defaults on error
-      }
-    };
-    fetchLanguages();
-  }, []);
+  // Note: Languages are defined with React icons in initial state
+  // API fetch disabled to preserve icons in dropdown
+  // useEffect(() => {
+  //   const fetchLanguages = async () => {
+  //     try {
+  //       const res = await axios.get('/api/v1/languages');
+  //       const langs = res?.data?.data?.languages || res?.data?.languages || [];
+  //       if (Array.isArray(langs) && langs.length) {
+  //         setLanguages(langs.map((l: any) => ({
+  //           id: l.id,
+  //           name: l.name,
+  //           icon: l.icon,
+  //           color: l.color,
+  //           category: l.category,
+  //           monacoLanguage: l.monacoLanguage
+  //         })));
+  //         if (!langs.find((l: any) => l.id === language)) {
+  //           setLanguage(langs[0].id);
+  //         }
+  //       }
+  //     } catch (e) {
+  //       // leave defaults on error
+  //     }
+  //   };
+  //   fetchLanguages();
+  // }, []);
 
 
   // Group languages by category
