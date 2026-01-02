@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { FaChartLine, FaUsers, FaClock, FaCheckCircle, FaTimes, FaDownload, FaFilter } from 'react-icons/fa';
+import { FaChartLine, FaUsers, FaClock, FaCheckCircle, FaDownload, FaFilter } from 'react-icons/fa';
 
 const DashboardContainer = styled.div`
   padding: 1.5rem;
@@ -102,8 +102,8 @@ const StatValue = styled.div`
 const StatTrend = styled.span<{ trend: 'up' | 'down' | 'neutral' }>`
   font-size: 0.75rem;
   color: ${props =>
-        props.trend === 'up' ? '#28a745' :
-            props.trend === 'down' ? '#dc3545' : 'var(--text-muted)'};
+    props.trend === 'up' ? '#28a745' :
+      props.trend === 'down' ? '#dc3545' : 'var(--text-muted)'};
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -140,7 +140,8 @@ const ChartTitle = styled.h3`
   font-weight: 600;
 `;
 
-const ChartPlaceholder = styled.div`
+// ChartPlaceholder - available for future use
+const _ChartPlaceholder = styled.div`
   height: 250px;
   background: linear-gradient(135deg, #1e1e1e, #2d2d2d);
   border-radius: 6px;
@@ -282,236 +283,236 @@ const StatusBadge = styled.span<{ status: 'passed' | 'failed' | 'pending' }>`
   font-size: 0.75rem;
   font-weight: 600;
   background: ${props =>
-        props.status === 'passed' ? '#28a74520' :
-            props.status === 'failed' ? '#dc354520' : '#ffc10720'};
+    props.status === 'passed' ? '#28a74520' :
+      props.status === 'failed' ? '#dc354520' : '#ffc10720'};
   color: ${props =>
-        props.status === 'passed' ? '#28a745' :
-            props.status === 'failed' ? '#dc3545' : '#ffc107'};
+    props.status === 'passed' ? '#28a745' :
+      props.status === 'failed' ? '#dc3545' : '#ffc107'};
 `;
 
 interface Analytics {
-    totalInterviews: number;
-    totalCandidates: number;
-    avgDuration: number;
+  totalInterviews: number;
+  totalCandidates: number;
+  avgDuration: number;
+  passRate: number;
+  trends: {
+    interviews: number;
+    candidates: number;
+    duration: number;
     passRate: number;
-    trends: {
-        interviews: number;
-        candidates: number;
-        duration: number;
-        passRate: number;
-    };
-    languageDistribution: Array<{ language: string; count: number }>;
-    difficultyDistribution: { easy: number; medium: number; hard: number };
-    recentSessions: Array<{
-        id: string;
-        candidate: string;
-        date: string;
-        duration: number;
-        score: number;
-        status: 'passed' | 'failed' | 'pending';
-    }>;
+  };
+  languageDistribution: Array<{ language: string; count: number }>;
+  difficultyDistribution: { easy: number; medium: number; hard: number };
+  recentSessions: Array<{
+    id: string;
+    candidate: string;
+    date: string;
+    duration: number;
+    score: number;
+    status: 'passed' | 'failed' | 'pending';
+  }>;
 }
 
 interface AnalyticsDashboardProps {
-    companyId?: string;
+  companyId?: string;
 }
 
-const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ companyId }) => {
-    const [dateRange, setDateRange] = useState('30d');
-    const [analytics, setAnalytics] = useState<Analytics>({
-        totalInterviews: 156,
-        totalCandidates: 89,
-        avgDuration: 47,
-        passRate: 68,
-        trends: {
-            interviews: 12,
-            candidates: 8,
-            duration: -3,
-            passRate: 5
-        },
-        languageDistribution: [
-            { language: 'JavaScript', count: 45 },
-            { language: 'Python', count: 38 },
-            { language: 'Java', count: 28 },
-            { language: 'C++', count: 15 },
-            { language: 'Go', count: 12 }
-        ],
-        difficultyDistribution: { easy: 30, medium: 50, hard: 20 },
-        recentSessions: [
-            { id: '1', candidate: 'Alice Smith', date: '2024-01-15', duration: 52, score: 85, status: 'passed' },
-            { id: '2', candidate: 'Bob Jones', date: '2024-01-14', duration: 45, score: 62, status: 'passed' },
-            { id: '3', candidate: 'Carol White', date: '2024-01-14', duration: 38, score: 48, status: 'failed' },
-            { id: '4', candidate: 'David Brown', date: '2024-01-13', duration: 60, score: 0, status: 'pending' },
-            { id: '5', candidate: 'Eve Davis', date: '2024-01-12', duration: 55, score: 92, status: 'passed' },
-        ]
-    });
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ companyId: _companyId }) => {
+  const [dateRange, setDateRange] = useState('30d');
+  const [analytics, _setAnalytics] = useState<Analytics>({
+    totalInterviews: 156,
+    totalCandidates: 89,
+    avgDuration: 47,
+    passRate: 68,
+    trends: {
+      interviews: 12,
+      candidates: 8,
+      duration: -3,
+      passRate: 5
+    },
+    languageDistribution: [
+      { language: 'JavaScript', count: 45 },
+      { language: 'Python', count: 38 },
+      { language: 'Java', count: 28 },
+      { language: 'C++', count: 15 },
+      { language: 'Go', count: 12 }
+    ],
+    difficultyDistribution: { easy: 30, medium: 50, hard: 20 },
+    recentSessions: [
+      { id: '1', candidate: 'Alice Smith', date: '2024-01-15', duration: 52, score: 85, status: 'passed' },
+      { id: '2', candidate: 'Bob Jones', date: '2024-01-14', duration: 45, score: 62, status: 'passed' },
+      { id: '3', candidate: 'Carol White', date: '2024-01-14', duration: 38, score: 48, status: 'failed' },
+      { id: '4', candidate: 'David Brown', date: '2024-01-13', duration: 60, score: 0, status: 'pending' },
+      { id: '5', candidate: 'Eve Davis', date: '2024-01-12', duration: 55, score: 92, status: 'passed' },
+    ]
+  });
 
-    const handleExport = () => {
-        const data = JSON.stringify(analytics, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `analytics-${dateRange}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-    };
+  const handleExport = () => {
+    const data = JSON.stringify(analytics, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-${dateRange}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
-    const maxLangCount = Math.max(...analytics.languageDistribution.map(l => l.count));
-    const langColors = ['#3178C6', '#3776AB', '#007396', '#00599C', '#00ADD8'];
+  const maxLangCount = Math.max(...analytics.languageDistribution.map(l => l.count));
+  const langColors = ['#3178C6', '#3776AB', '#007396', '#00599C', '#00ADD8'];
 
-    return (
-        <DashboardContainer>
-            <DashboardHeader>
-                <Title>
-                    <FaChartLine /> Analytics Dashboard
-                </Title>
-                <HeaderActions>
-                    <DateRangeSelector value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
-                        <option value="7d">Last 7 days</option>
-                        <option value="30d">Last 30 days</option>
-                        <option value="90d">Last 90 days</option>
-                        <option value="1y">Last year</option>
-                    </DateRangeSelector>
-                    <ActionButton>
-                        <FaFilter /> Filter
-                    </ActionButton>
-                    <ActionButton onClick={handleExport}>
-                        <FaDownload /> Export
-                    </ActionButton>
-                </HeaderActions>
-            </DashboardHeader>
+  return (
+    <DashboardContainer>
+      <DashboardHeader>
+        <Title>
+          <FaChartLine /> Analytics Dashboard
+        </Title>
+        <HeaderActions>
+          <DateRangeSelector value={dateRange} onChange={(e) => setDateRange(e.target.value)}>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+            <option value="1y">Last year</option>
+          </DateRangeSelector>
+          <ActionButton>
+            <FaFilter /> Filter
+          </ActionButton>
+          <ActionButton onClick={handleExport}>
+            <FaDownload /> Export
+          </ActionButton>
+        </HeaderActions>
+      </DashboardHeader>
 
-            <StatsGrid>
-                <StatCard>
-                    <StatHeader>
-                        <StatLabel>Total Interviews</StatLabel>
-                        <StatIcon color="#6366f1"><FaChartLine /></StatIcon>
-                    </StatHeader>
-                    <StatValue>{analytics.totalInterviews}</StatValue>
-                    <StatTrend trend={analytics.trends.interviews > 0 ? 'up' : 'down'}>
-                        {analytics.trends.interviews > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.interviews)}% vs last period
-                    </StatTrend>
-                </StatCard>
+      <StatsGrid>
+        <StatCard>
+          <StatHeader>
+            <StatLabel>Total Interviews</StatLabel>
+            <StatIcon color="#6366f1"><FaChartLine /></StatIcon>
+          </StatHeader>
+          <StatValue>{analytics.totalInterviews}</StatValue>
+          <StatTrend trend={analytics.trends.interviews > 0 ? 'up' : 'down'}>
+            {analytics.trends.interviews > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.interviews)}% vs last period
+          </StatTrend>
+        </StatCard>
 
-                <StatCard>
-                    <StatHeader>
-                        <StatLabel>Total Candidates</StatLabel>
-                        <StatIcon color="#10b981"><FaUsers /></StatIcon>
-                    </StatHeader>
-                    <StatValue>{analytics.totalCandidates}</StatValue>
-                    <StatTrend trend={analytics.trends.candidates > 0 ? 'up' : 'down'}>
-                        {analytics.trends.candidates > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.candidates)}% vs last period
-                    </StatTrend>
-                </StatCard>
+        <StatCard>
+          <StatHeader>
+            <StatLabel>Total Candidates</StatLabel>
+            <StatIcon color="#10b981"><FaUsers /></StatIcon>
+          </StatHeader>
+          <StatValue>{analytics.totalCandidates}</StatValue>
+          <StatTrend trend={analytics.trends.candidates > 0 ? 'up' : 'down'}>
+            {analytics.trends.candidates > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.candidates)}% vs last period
+          </StatTrend>
+        </StatCard>
 
-                <StatCard>
-                    <StatHeader>
-                        <StatLabel>Avg Duration</StatLabel>
-                        <StatIcon color="#f59e0b"><FaClock /></StatIcon>
-                    </StatHeader>
-                    <StatValue>{analytics.avgDuration} min</StatValue>
-                    <StatTrend trend={analytics.trends.duration > 0 ? 'up' : 'down'}>
-                        {analytics.trends.duration > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.duration)} min vs last period
-                    </StatTrend>
-                </StatCard>
+        <StatCard>
+          <StatHeader>
+            <StatLabel>Avg Duration</StatLabel>
+            <StatIcon color="#f59e0b"><FaClock /></StatIcon>
+          </StatHeader>
+          <StatValue>{analytics.avgDuration} min</StatValue>
+          <StatTrend trend={analytics.trends.duration > 0 ? 'up' : 'down'}>
+            {analytics.trends.duration > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.duration)} min vs last period
+          </StatTrend>
+        </StatCard>
 
-                <StatCard>
-                    <StatHeader>
-                        <StatLabel>Pass Rate</StatLabel>
-                        <StatIcon color="#22c55e"><FaCheckCircle /></StatIcon>
-                    </StatHeader>
-                    <StatValue>{analytics.passRate}%</StatValue>
-                    <StatTrend trend={analytics.trends.passRate > 0 ? 'up' : 'down'}>
-                        {analytics.trends.passRate > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.passRate)}% vs last period
-                    </StatTrend>
-                </StatCard>
-            </StatsGrid>
+        <StatCard>
+          <StatHeader>
+            <StatLabel>Pass Rate</StatLabel>
+            <StatIcon color="#22c55e"><FaCheckCircle /></StatIcon>
+          </StatHeader>
+          <StatValue>{analytics.passRate}%</StatValue>
+          <StatTrend trend={analytics.trends.passRate > 0 ? 'up' : 'down'}>
+            {analytics.trends.passRate > 0 ? '↑' : '↓'} {Math.abs(analytics.trends.passRate)}% vs last period
+          </StatTrend>
+        </StatCard>
+      </StatsGrid>
 
-            <ChartsGrid>
-                <ChartCard>
-                    <ChartHeader>
-                        <ChartTitle>Language Distribution</ChartTitle>
-                    </ChartHeader>
-                    <SimpleBarChart>
-                        {analytics.languageDistribution.map((lang, i) => (
-                            <BarRow key={lang.language}>
-                                <BarLabel>{lang.language}</BarLabel>
-                                <BarContainer>
-                                    <Bar
-                                        width={(lang.count / maxLangCount) * 100}
-                                        color={langColors[i % langColors.length]}
-                                    >
-                                        {lang.count}
-                                    </Bar>
-                                </BarContainer>
-                            </BarRow>
-                        ))}
-                    </SimpleBarChart>
-                </ChartCard>
+      <ChartsGrid>
+        <ChartCard>
+          <ChartHeader>
+            <ChartTitle>Language Distribution</ChartTitle>
+          </ChartHeader>
+          <SimpleBarChart>
+            {analytics.languageDistribution.map((lang, i) => (
+              <BarRow key={lang.language}>
+                <BarLabel>{lang.language}</BarLabel>
+                <BarContainer>
+                  <Bar
+                    width={(lang.count / maxLangCount) * 100}
+                    color={langColors[i % langColors.length]}
+                  >
+                    {lang.count}
+                  </Bar>
+                </BarContainer>
+              </BarRow>
+            ))}
+          </SimpleBarChart>
+        </ChartCard>
 
-                <ChartCard>
-                    <ChartHeader>
-                        <ChartTitle>Difficulty Distribution</ChartTitle>
-                    </ChartHeader>
-                    <PieChartContainer>
-                        <SimplePieChart>
-                            <PieCenter>
-                                <div style={{ fontWeight: 700, fontSize: '1.5rem' }}>156</div>
-                                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total</div>
-                            </PieCenter>
-                        </SimplePieChart>
-                        <PieLegend>
-                            <LegendItem>
-                                <LegendDot color="#28a745" />
-                                Easy ({analytics.difficultyDistribution.easy}%)
-                            </LegendItem>
-                            <LegendItem>
-                                <LegendDot color="#ffc107" />
-                                Medium ({analytics.difficultyDistribution.medium}%)
-                            </LegendItem>
-                            <LegendItem>
-                                <LegendDot color="#dc3545" />
-                                Hard ({analytics.difficultyDistribution.hard}%)
-                            </LegendItem>
-                        </PieLegend>
-                    </PieChartContainer>
-                </ChartCard>
-            </ChartsGrid>
+        <ChartCard>
+          <ChartHeader>
+            <ChartTitle>Difficulty Distribution</ChartTitle>
+          </ChartHeader>
+          <PieChartContainer>
+            <SimplePieChart>
+              <PieCenter>
+                <div style={{ fontWeight: 700, fontSize: '1.5rem' }}>156</div>
+                <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total</div>
+              </PieCenter>
+            </SimplePieChart>
+            <PieLegend>
+              <LegendItem>
+                <LegendDot color="#28a745" />
+                Easy ({analytics.difficultyDistribution.easy}%)
+              </LegendItem>
+              <LegendItem>
+                <LegendDot color="#ffc107" />
+                Medium ({analytics.difficultyDistribution.medium}%)
+              </LegendItem>
+              <LegendItem>
+                <LegendDot color="#dc3545" />
+                Hard ({analytics.difficultyDistribution.hard}%)
+              </LegendItem>
+            </PieLegend>
+          </PieChartContainer>
+        </ChartCard>
+      </ChartsGrid>
 
-            <TableCard>
-                <ChartHeader style={{ padding: '1rem' }}>
-                    <ChartTitle>Recent Sessions</ChartTitle>
-                </ChartHeader>
-                <Table>
-                    <thead>
-                        <tr>
-                            <Th>Candidate</Th>
-                            <Th>Date</Th>
-                            <Th>Duration</Th>
-                            <Th>Score</Th>
-                            <Th>Status</Th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {analytics.recentSessions.map(session => (
-                            <tr key={session.id}>
-                                <Td>{session.candidate}</Td>
-                                <Td>{session.date}</Td>
-                                <Td>{session.duration} min</Td>
-                                <Td>{session.status === 'pending' ? '-' : `${session.score}%`}</Td>
-                                <Td>
-                                    <StatusBadge status={session.status}>
-                                        {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
-                                    </StatusBadge>
-                                </Td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
-            </TableCard>
-        </DashboardContainer>
-    );
+      <TableCard>
+        <ChartHeader style={{ padding: '1rem' }}>
+          <ChartTitle>Recent Sessions</ChartTitle>
+        </ChartHeader>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Candidate</Th>
+              <Th>Date</Th>
+              <Th>Duration</Th>
+              <Th>Score</Th>
+              <Th>Status</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {analytics.recentSessions.map(session => (
+              <tr key={session.id}>
+                <Td>{session.candidate}</Td>
+                <Td>{session.date}</Td>
+                <Td>{session.duration} min</Td>
+                <Td>{session.status === 'pending' ? '-' : `${session.score}%`}</Td>
+                <Td>
+                  <StatusBadge status={session.status}>
+                    {session.status.charAt(0).toUpperCase() + session.status.slice(1)}
+                  </StatusBadge>
+                </Td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </TableCard>
+    </DashboardContainer>
+  );
 };
 
 export default AnalyticsDashboard;
