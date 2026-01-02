@@ -2973,7 +2973,9 @@ const InterviewSession: React.FC = () => {
                         zIndex: 2
                       }}>
                         {isRemoteSpeaking && <span style={{ color: '#22c55e' }}>🔊</span>}
-                        {participants.length > 0 ? participants[0]?.username || (isHost ? 'Participant' : 'Host') : (isHost ? 'Waiting for participant...' : 'Host')}
+                        {participants.length > 0
+                          ? `${participants[0]?.username || (isHost ? 'Participant' : 'Host')}${!isHost ? ' (Host)' : ''}`
+                          : (isHost ? 'Waiting for participant...' : 'Host (Host)')}
                       </div>
                     </div>
                   </VideoContainer>
