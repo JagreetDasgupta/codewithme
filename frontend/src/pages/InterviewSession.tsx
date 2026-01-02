@@ -606,6 +606,7 @@ const InterviewSession: React.FC = () => {
   const [joinProgress, setJoinProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
   const [ready, setReady] = useState(false);
+  const [hasRemoteStream, setHasRemoteStream] = useState(false);
 
   // Tab state for left panel (Chat, Questions, Whiteboard)
   const [leftPanelTab, _setLeftPanelTab] = useState<'chat' | 'questions' | 'whiteboard'>('chat');
@@ -1294,6 +1295,7 @@ const InterviewSession: React.FC = () => {
 
       peer.on('stream', remoteStream => {
         console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+        setHasRemoteStream(true);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.play().catch(e => console.error('[WebRTC] Play error:', e));
@@ -1339,6 +1341,7 @@ const InterviewSession: React.FC = () => {
 
         peer.on('stream', remoteStream => {
           console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+          setHasRemoteStream(true);
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = remoteStream;
             remoteVideoRef.current.play().catch(e => console.error('[WebRTC] Play error:', e));
@@ -2972,7 +2975,7 @@ const InterviewSession: React.FC = () => {
                         right: 0,
                         bottom: 0,
                         background: 'linear-gradient(135deg, #374151, #1f2937)',
-                        display: 'flex',
+                        display: hasRemoteStream ? 'none' : 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center'
