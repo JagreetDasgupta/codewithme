@@ -29,7 +29,7 @@ app.set('trust proxy', 1);
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: (process.env.FRONTEND_URL?.split(',') || []).concat(['http://localhost:3000', 'http://localhost:3001']),
+    origin: '*',  // Allow all origins for WebSocket
     methods: ['GET', 'POST'],
     credentials: true
   }
