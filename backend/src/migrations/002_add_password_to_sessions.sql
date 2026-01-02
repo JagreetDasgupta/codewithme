@@ -1,0 +1,1 @@
+ALTER TABLE sessions ADD COLUMN password VARCHAR(255);

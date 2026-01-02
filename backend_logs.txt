@@ -1,0 +1,19 @@
+
+> codewithme-backend@1.0.0 dev
+> nodemon --exec ts-node --transpile-only src/index.ts
+
+[33m[nodemon] 3.1.11[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: ts,json[39m
+[32m[nodemon] starting `ts-node --transpile-only src/index.ts`[39m
+[33mwarn[39m: Sentry DSN not configured. Error tracking disabled. {"service":"codewithme-backend","timestamp":"2025-12-09T10:42:56.424Z"}
+[32minfo[39m: Y.js WebSocket server initialized {"service":"codewithme-backend","timestamp":"2025-12-09T10:42:56.434Z"}
+[32minfo[39m: Server running on port 4000 {"environment":"development","service":"codewithme-backend","timestamp":"2025-12-09T10:42:56.520Z","version":"1.0.0"}
+[33mwarn[39m: Database connection failed (attempt 1/5), retrying in 2000ms... {"service":"codewithme-backend","timestamp":"2025-12-09T10:42:56.537Z"}
+[32minfo[39m: Connected to PostgreSQL database {"database":"codewithme","host":"postgres","poolSize":1,"service":"codewithme-backend","timestamp":"2025-12-09T10:42:58.625Z"}
+[32minfo[39m: Incoming request {"correlationId":"f56b3852-5c50-4e3b-b5ac-cc8d710a95ea","ip":"::ffff:172.18.0.1","method":"POST","path":"/api/v1/auth/register","service":"codewithme-backend","timestamp":"2025-12-09T11:05:05.126Z","userAgent":"curl/8.16.0"}
+[33mwarn[39m: Expected property name or '}' in JSON at position 1 {"correlationId":"f56b3852-5c50-4e3b-b5ac-cc8d710a95ea","ip":"::ffff:172.18.0.1","method":"POST","path":"/api/v1/auth/register","service":"codewithme-backend","stack":"SyntaxError: Expected property name or '}' in JSON at position 1\n    at JSON.parse (<anonymous>)\n    at parse (/app/node_modules/body-parser/lib/types/json.js:92:19)\n    at /app/node_modules/body-parser/lib/read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:206:9)\n    at invokeCallback (/app/node_modules/raw-body/index.js:238:16)\n    at done (/app/node_modules/raw-body/index.js:227:7)\n    at IncomingMessage.onEnd (/app/node_modules/raw-body/index.js:287:7)\n    at IncomingMessage.emit (node:events:524:28)\n    at IncomingMessage.emit (node:domain:489:12)\n    at endReadableNT (node:internal/streams/readable:1698:12)","statusCode":400,"timestamp":"2025-12-09T11:05:05.203Z","userAgent":"curl/8.16.0"}
+[31merror[39m: Request completed {"correlationId":"f56b3852-5c50-4e3b-b5ac-cc8d710a95ea","duration":"125ms","ip":"::ffff:172.18.0.1","method":"POST","path":"/api/v1/auth/register","service":"codewithme-backend","statusCode":400,"timestamp":"2025-12-09T11:05:05.216Z"}
+[32minfo[39m: Incoming request {"correlationId":"cc19ff7c-9957-40dd-881f-58ec83bcd845","ip":"::ffff:172.18.0.1","method":"POST","path":"/api/v1/auth/register","service":"codewithme-backend","timestamp":"2025-12-09T11:05:19.149Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.26200; en-IN) PowerShell/7.5.4"}
+[32minfo[39m: Request completed {"correlationId":"cc19ff7c-9957-40dd-881f-58ec83bcd845","duration":"262ms","ip":"::ffff:172.18.0.1","method":"POST","path":"/register","service":"codewithme-backend","statusCode":201,"timestamp":"2025-12-09T11:05:19.413Z"}

@@ -1,0 +1,71 @@
+{
+  "name": "codewithme-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@monaco-editor/react": "^4.5.1",
+    "axios": "^1.4.0",
+    "buffer": "^6.0.3",
+    "events": "^3.3.0",
+    "jwt-decode": "^3.1.2",
+    "monaco-editor": "^0.40.0",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.10.1",
+    "react-router-dom": "^6.14.2",
+    "simple-peer": "^9.11.1",
+    "socket.io-client": "^4.7.1",
+    "stream-browserify": "^3.0.0",
+    "styled-components": "^6.0.5",
+    "util": "^0.12.5",
+    "vite-plugin-node-polyfills": "^0.24.0",
+    "y-monaco": "^0.1.4",
+    "y-websocket": "^1.5.0",
+    "yjs": "^13.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@prettier/plugin-php": "^0.24.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^14.0.0",
+    "@testing-library/user-event": "^14.4.3",
+    "@types/jest": "^29.5.3",
+    "@types/node": "^20.4.5",
+    "@types/react": "^18.2.17",
+    "@types/react-dom": "^18.2.7",
+    "@types/simple-peer": "^9.11.5",
+    "@vitejs/plugin-react": "^4.0.3",
+    "prettier": "^3.7.4",
+    "prettier-plugin-java": "^2.7.7",
+    "typescript": "^5.1.6",
+    "vite": "^4.4.7",
+    "vitest": "^0.33.0"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "tsc && vite build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
