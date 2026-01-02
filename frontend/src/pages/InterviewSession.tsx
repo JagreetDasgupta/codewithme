@@ -601,7 +601,7 @@ const InterviewSession: React.FC = () => {
   const [admissionRequests, setAdmissionRequests] = useState<{ socketId: string; userId: string; username: string; requestedAt: Date }[]>([]);
   const [autoAdmit, setAutoAdmit] = useState(false);
 
-  const [_highContrast, setHighContrast] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [joinProgress, setJoinProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
