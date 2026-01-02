@@ -1,60 +1,70 @@
 import express from 'express';
-import { AppError } from '../middleware/errorHandler';
+import { CodeExecutionService } from '../services/codeExecutionService';
 import { executionLimiter } from '../middleware/rateLimiter';
 
 const router = express.Router();
-const SANDBOX_URL = process.env.SANDBOX_URL || 'http://sandbox:5000';
 
-// Fallback languages when sandbox is unavailable (for development)
-const FALLBACK_LANGUAGES = [
-  { id: 'javascript', name: 'JavaScript', version: 'ES2022', icon: '🟨', monacoLanguage: 'javascript' },
-  { id: 'typescript', name: 'TypeScript', version: '5.0', icon: '🔷', monacoLanguage: 'typescript' },
-  { id: 'python', name: 'Python', version: '3.11', icon: '🐍', monacoLanguage: 'python' },
-  { id: 'java', name: 'Java', version: '17', icon: '☕', monacoLanguage: 'java' },
-  { id: 'cpp', name: 'C++', version: '17', icon: '⚙️', monacoLanguage: 'cpp' },
-  { id: 'c', name: 'C', version: 'C11', icon: '🔧', monacoLanguage: 'c' },
-  { id: 'csharp', name: 'C#', version: '10', icon: '🟣', monacoLanguage: 'csharp' },
-  { id: 'go', name: 'Go', version: '1.21', icon: '🐹', monacoLanguage: 'go' },
-  { id: 'rust', name: 'Rust', version: '1.70', icon: '🦀', monacoLanguage: 'rust' },
-  { id: 'ruby', name: 'Ruby', version: '3.2', icon: '💎', monacoLanguage: 'ruby' },
-  { id: 'php', name: 'PHP', version: '8.2', icon: '🐘', monacoLanguage: 'php' },
-  { id: 'swift', name: 'Swift', version: '5.8', icon: '🍎', monacoLanguage: 'swift' },
-  { id: 'kotlin', name: 'Kotlin', version: '1.9', icon: '🟠', monacoLanguage: 'kotlin' },
-  { id: 'sql', name: 'SQL', version: 'Standard', icon: '🗃️', monacoLanguage: 'sql' },
-];
-
-// GET /api/v1/languages -> proxy to sandbox (with fallback)
-router.get('/languages', async (req, res, next) => {
+// GET /api/v1/languages -> get available languages from Piston
+router.get('/languages', async (req, res) => {
   try {
-    const resp = await fetch(`${SANDBOX_URL}/api/v1/languages`);
-    if (!resp.ok) {
-      // Return fallback instead of error
-      return res.status(200).json({ status: 'success', data: { languages: FALLBACK_LANGUAGES } });
-    }
-    const data = await resp.json();
-    res.status(200).json(data);
+    const runtimes = await CodeExecutionService.getAvailableRuntimes();
+    const languages = runtimes.map(r => ({
+      id: r.language,
+      name: r.language.charAt(0).toUpperCase() + r.language.slice(1),
+      version: r.version,
+      monacoLanguage: r.language
+    }));
+    res.status(200).json({ status: 'success', data: { languages } });
   } catch (error: any) {
-    // Return fallback languages when sandbox is unreachable
+    // Fallback languages when Piston is unreachable
+    const FALLBACK_LANGUAGES = [
+      { id: 'javascript', name: 'JavaScript', version: 'ES2022', monacoLanguage: 'javascript' },
+      { id: 'typescript', name: 'TypeScript', version: '5.0', monacoLanguage: 'typescript' },
+      { id: 'python', name: 'Python', version: '3.11', monacoLanguage: 'python' },
+      { id: 'java', name: 'Java', version: '17', monacoLanguage: 'java' },
+      { id: 'cpp', name: 'C++', version: '17', monacoLanguage: 'cpp' },
+      { id: 'c', name: 'C', version: 'C11', monacoLanguage: 'c' },
+      { id: 'csharp', name: 'C#', version: '10', monacoLanguage: 'csharp' },
+      { id: 'go', name: 'Go', version: '1.21', monacoLanguage: 'go' },
+      { id: 'rust', name: 'Rust', version: '1.70', monacoLanguage: 'rust' },
+      { id: 'ruby', name: 'Ruby', version: '3.2', monacoLanguage: 'ruby' },
+      { id: 'php', name: 'PHP', version: '8.2', monacoLanguage: 'php' },
+    ];
     res.status(200).json({ status: 'success', data: { languages: FALLBACK_LANGUAGES } });
   }
 });
 
-// POST /api/v1/execute -> proxy to sandbox (with rate limiting)
-router.post('/execute', executionLimiter, async (req, res, next) => {
+// POST /api/v1/execute -> execute code using Piston API
+router.post('/execute', executionLimiter, async (req, res) => {
   try {
-    const resp = await fetch(`${SANDBOX_URL}/api/v1/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
-    if (!resp.ok) {
-      const errText = await resp.text();
-      return next(new AppError(`Sandbox execute error: ${resp.statusText} - ${errText}`, resp.status));
+    const { code, language, stdin } = req.body;
+
+    if (!code || !language) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Missing required fields: code and language'
+      });
     }
-    const data = await resp.json();
-    res.status(200).json(data);
+
+    const result = await CodeExecutionService.execute(code, language, stdin || '');
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        output: result.stdout,
+        error: result.stderr,
+        exitCode: result.exitCode,
+        executionTime: result.executionTime,
+        timedOut: result.timedOut,
+        language: result.language,
+        version: result.version
+      }
+    });
   } catch (error: any) {
-    next(new AppError(`Sandbox execute request failed: ${error.message || error}`, 500));
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Execution failed'
+    });
   }
 });
 
