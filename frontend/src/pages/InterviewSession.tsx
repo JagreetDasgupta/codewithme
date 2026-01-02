@@ -1356,10 +1356,18 @@ const InterviewSession: React.FC = () => {
       }
     });
 
-    // Handle user-joined event for WebRTC (host creates peer when participant joins)
-    // This works in conjunction with the user-joined listener above (line ~1230)
+    // Handle user-joined event for WebRTC (ONLY HOST creates peer when participant joins)
+    // The participant should NOT react to this - they wait for incoming signal from host
     socket.on('user-joined', (payload: { userId: string; username: string; socketId: string }) => {
       console.log('[WebRTC] User joined event received:', payload.username, 'socketId:', payload.socketId);
+
+      // Only the HOST should create an initiator peer when a participant joins
+      // The participant will receive a signal from the host and respond as non-initiator
+      const isCreator = !!(user?.id && hostId && user.id === hostId);
+      if (!isCreator) {
+        console.log('[WebRTC] Not host, ignoring user-joined for peer creation');
+        return;
+      }
 
       // If stream is not ready yet, store the target for later (handled in getUserMedia.then)
       if (!localStream) {
