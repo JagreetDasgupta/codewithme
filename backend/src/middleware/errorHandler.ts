@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import logger from '../utils/logger';
 import { captureException, addBreadcrumb } from '../utils/sentry';
 
-interface AppError extends Error {
+interface IAppError extends Error {
   statusCode?: number;
   isOperational?: boolean;
   code?: string;
@@ -10,7 +10,7 @@ interface AppError extends Error {
 }
 
 export const errorHandler = (
-  err: AppError,
+  err: IAppError,
   req: Request,
   res: Response,
   next: NextFunction
@@ -96,7 +96,7 @@ export const errorHandler = (
     message: isOperational ? err.message : 'Internal server error',
     code: err.code || 'INTERNAL_ERROR',
     ...(err.details && { details: err.details }),
-    ...(process.env.NODE_ENV === 'development' && { 
+    ...(process.env.NODE_ENV === 'development' && {
       stack: err.stack,
       context: errorContext
     })
@@ -115,7 +115,7 @@ export class AppError extends Error {
     this.isOperational = true;
     this.code = code;
     this.details = details;
-    
+
     Error.captureStackTrace(this, this.constructor);
   }
 }

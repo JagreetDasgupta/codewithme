@@ -14,7 +14,7 @@ export const apiLimiter = rateLimit({
     res.status(429).json({
       status: 'error',
       message: 'Too many requests, please try again later.',
-      retryAfter: Math.ceil(req.rateLimit?.resetTime ? (req.rateLimit.resetTime - Date.now()) / 1000 : 900)
+      retryAfter: 900
     });
   }
 });
