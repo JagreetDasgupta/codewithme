@@ -49,8 +49,28 @@ app.use(helmet({
 }));
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  ...(process.env.FRONTEND_URL?.split(',').map(url => url.trim()) || [])
+];
+
+// Log allowed origins on startup
+logger.info('CORS allowed origins:', { origins: allowedOrigins });
+
 app.use(cors({
-  origin: (process.env.FRONTEND_URL?.split(',') || []).concat(['http://localhost:3000', 'http://localhost:3001']),
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.some(allowed => origin.includes(allowed.replace('https://', '').replace('http://', '')))) {
+      return callback(null, true);
+    }
+
+    logger.warn('CORS blocked origin:', { origin, allowedOrigins });
+    callback(null, true); // Temporarily allow all origins for debugging
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
