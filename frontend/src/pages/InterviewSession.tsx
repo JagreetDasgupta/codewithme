@@ -1172,6 +1172,7 @@ const InterviewSession: React.FC = () => {
     setJoinProgress((p) => (p < 60 ? 60 : p));
 
     socket.on('connect', () => {
+      console.log('[Socket] Connected with ID:', socket.id);
       setStatusText('Joined signaling');
       setJoinProgress((p) => (p < 90 ? 90 : p));
     });
