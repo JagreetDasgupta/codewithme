@@ -308,7 +308,16 @@ export const setupWebSocketServer = (io: Server) => {
     // Generic signaling handler for compatibility
     socket.on('signal', ({ toSocketId, signal }) => {
       const userSession = userSessions.get(socket.id);
-      if (!userSession) return;
+      if (!userSession) {
+        logger.warn('Signal from unknown socket', { socketId: socket.id, toSocketId });
+        return;
+      }
+      logger.info('Forwarding signal', {
+        from: socket.id,
+        to: toSocketId,
+        signalType: signal?.type,
+        username: userSession.username
+      });
       io.to(toSocketId).emit('signal', {
         from: socket.id,
         signal,
