@@ -1597,7 +1597,8 @@ const InterviewSession: React.FC = () => {
         peerRef.current = null;
       }
     };
-  }, [sessionId, token, API_BASE, isHost, hostId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, token, API_BASE]); // Note: Removed isHost, hostId to prevent peer destruction on re-render
 
   // Set up Monaco editor binding
   const handleEditorDidMount = (editor: any, monaco: any) => {
