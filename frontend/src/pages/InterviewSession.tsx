@@ -1464,9 +1464,11 @@ const InterviewSession: React.FC = () => {
               });
 
               peer.on('stream', remoteStream => {
-                console.log('[WebRTC] Remote stream received (no local stream)! Tracks:', remoteStream.getTracks().map(t => t.kind));
+                console.log('[WebRTC] Remote stream received (no local stream)! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+                setHasRemoteStream(true);
                 if (remoteVideoRef.current) {
                   remoteVideoRef.current.srcObject = remoteStream;
+                  remoteVideoRef.current.play().catch(e => console.error('[WebRTC] Play error:', e));
                 }
               });
 
@@ -1498,9 +1500,11 @@ const InterviewSession: React.FC = () => {
           });
 
           peer.on('stream', remoteStream => {
-            console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => t.kind));
+            console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+            setHasRemoteStream(true);
             if (remoteVideoRef.current) {
               remoteVideoRef.current.srcObject = remoteStream;
+              remoteVideoRef.current.play().catch(e => console.error('[WebRTC] Play error:', e));
             }
           });
 
