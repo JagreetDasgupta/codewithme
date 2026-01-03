@@ -1578,27 +1578,29 @@ const InterviewSession: React.FC = () => {
       }
     });
 
-    // Clean up on unmount
+    // Clean up on unmount - only remove listeners, don't destroy peer during re-runs
     return () => {
       socket.off('session-participants');
       socket.off('user-joined');
       socket.off('user-left');
       socket.off('focus-change');
       socket.off('lock-override');
-      socket.off('lock-override');
-      socket.off('language-change');
       socket.off('language-change');
       socket.off('problem-statement-update');
       socket.off('file-update');
       socket.off('run-result');
-      socket.disconnect();
-      if (peerRef.current) {
-        peerRef.current.destroy();
-        peerRef.current = null;
+      // Only disconnect socket and destroy peer if component is actually unmounting
+      // We know it's unmounting if sessionId changes, not just hostId
+      if (!sessionId) {
+        socket.disconnect();
+        if (peerRef.current) {
+          peerRef.current.destroy();
+          peerRef.current = null;
+        }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, token, API_BASE]); // Note: Removed isHost, hostId to prevent peer destruction on re-render
+  }, [sessionId, token, API_BASE, hostId]); // Note: hostId needed for join logic, but peer cleanup is conditional
 
   // Set up Monaco editor binding
   const handleEditorDidMount = (editor: any, monaco: any) => {
