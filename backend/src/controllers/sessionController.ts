@@ -4,7 +4,6 @@ import { SessionModel, SessionInput } from '../models/session';
 import { ParticipantModel, ParticipantInput } from '../models/participant';
 import { AppError } from '../middleware/errorHandler';
 import logger from '../utils/logger';
-import { DailyService } from '../services/dailyService';
 
 export const createSession = async (
   req: Request,
@@ -329,55 +328,5 @@ export const removeParticipant = async (
   } catch (error) {
     logger.error('Error removing participant:', error);
     next(new AppError('Error removing participant from session', 500));
-  }
-};
-
-/**
- * Get or create a Daily.co room for a session
- */
-export const getDailyRoom = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-
-    // Check if session exists
-    const session = await SessionModel.findById(id);
-    if (!session) {
-      return next(new AppError('Session not found', 404));
-    }
-
-    // Create or get Daily room
-    const room = await DailyService.createRoom(id);
-    const isOwner = session.created_by === req.user.id;
-
-    // Create meeting token for user
-    const token = await DailyService.createMeetingToken(
-      room.name,
-      req.user.id,
-      req.user.name || 'Anonymous',
-      isOwner
-    );
-
-    res.status(200).json({
-      status: 'success',
-      data: {
-        roomUrl: room.url,
-        roomName: room.name,
-        token,
-        isOwner
-      }
-    });
-  } catch (error: any) {
-    logger.error('Error getting Daily room:', error);
-
-    // If Daily API key not configured, return helpful error
-    if (error.message?.includes('DAILY_API_KEY')) {
-      return next(new AppError('Video service not configured. Please add DAILY_API_KEY to environment.', 503));
-    }
-
-    next(new AppError('Error setting up video room', 500));
   }
 };

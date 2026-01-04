@@ -26,7 +26,7 @@ import PlaybackControls, { PlaybackControlsHandle } from '../components/Playback
 import QuestionBank, { Question } from '../components/QuestionBank';
 import Whiteboard, { WhiteboardHandle } from '../components/Whiteboard';
 import { FiHelpCircle, FiEdit3, FiPlay } from 'react-icons/fi';
-import DailyVideo from '../components/DailyVideo';
+import JitsiVideo from '../components/JitsiVideo';
 
 // Extend window for Monaco access
 declare global {
@@ -628,34 +628,7 @@ const InterviewSession: React.FC = () => {
   const [ready, setReady] = useState(false);
   const [hasRemoteStream, setHasRemoteStream] = useState(false);
 
-  // Daily.co video room state
-  const [dailyRoomUrl, setDailyRoomUrl] = useState<string | null>(null);
-  const [dailyToken, setDailyToken] = useState<string | null>(null);
-  const [dailyError, setDailyError] = useState<string | null>(null);
 
-  // Fetch Daily.co room when admitted to session
-  useEffect(() => {
-    if (!sessionId || !admitted) return;
-
-    const fetchDailyRoom = async () => {
-      try {
-        console.log('[Daily] Fetching room for session:', sessionId);
-        const res = await axios.get(`/api/v1/sessions/${sessionId}/daily-room`);
-        const { roomUrl, token } = res?.data?.data || {};
-        if (roomUrl && token) {
-          console.log('[Daily] Room ready:', roomUrl);
-          setDailyRoomUrl(roomUrl);
-          setDailyToken(token);
-          setDailyError(null);
-        }
-      } catch (error: any) {
-        console.error('[Daily] Failed to fetch room:', error);
-        setDailyError(error?.response?.data?.message || 'Failed to initialize video');
-      }
-    };
-
-    fetchDailyRoom();
-  }, [sessionId, admitted]);
 
   // Tab state for left panel (Chat, Questions, Whiteboard)
   const [leftPanelTab, _setLeftPanelTab] = useState<'chat' | 'questions' | 'whiteboard'>('chat');
@@ -2954,45 +2927,13 @@ const InterviewSession: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  {/* Daily.co Video - Replaces old WebRTC implementation */}
-                  {dailyRoomUrl && dailyToken ? (
-                    <DailyVideo
-                      roomUrl={dailyRoomUrl}
-                      token={dailyToken}
+                  {/* Jitsi Meet Video - Free, no API key needed */}
+                  {sessionId && (
+                    <JitsiVideo
+                      sessionId={sessionId}
                       userName={user?.name || 'Anonymous'}
                       isHost={isHost}
                     />
-                  ) : dailyError ? (
-                    <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '200px',
-                      background: 'linear-gradient(135deg, #374151, #1f2937)',
-                      borderRadius: '8px',
-                      color: '#ef4444',
-                      padding: '1rem',
-                      textAlign: 'center'
-                    }}>
-                      <span style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</span>
-                      <span>{dailyError}</span>
-                      <span style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.5rem' }}>
-                        Check DAILY_API_KEY in backend environment
-                      </span>
-                    </div>
-                  ) : (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: '200px',
-                      background: 'linear-gradient(135deg, #374151, #1f2937)',
-                      borderRadius: '8px',
-                      color: '#9ca3af'
-                    }}>
-                      <span>Loading video...</span>
-                    </div>
                   )}
                 </VideoPanel>
               </div>

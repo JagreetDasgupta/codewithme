@@ -7,8 +7,7 @@ import {
   deleteSession,
   addParticipant,
   removeParticipant,
-  joinSession,
-  getDailyRoom
+  joinSession
 } from '../controllers/sessionController';
 import { createSnapshot, listSnapshots, getSnapshot } from '../controllers/snapshotController';
 import {
@@ -63,9 +62,5 @@ router.route('/:id/recording/events')
 router.route('/:id/plagiarism')
   .get(getPlagiarismChecks)
   .post(checkPlagiarism);
-
-// Daily.co video room route
-router.route('/:id/daily-room')
-  .get(getDailyRoom);
 
 export default router;
