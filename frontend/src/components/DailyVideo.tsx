@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useCallback, useState } from 'react';
-import DailyIframe, { DailyCall } from '@daily-co/daily-js';
 import styled from 'styled-components';
+
+// Dynamic import to avoid bundling issues
+let DailyIframe: any = null;
 
 const VideoContainer = styled.div`
   display: flex;
@@ -38,11 +40,11 @@ const PlaceholderAvatar = styled.div`
   background: linear-gradient(135deg, #374151, #1f2937);
 `;
 
-const AvatarCircle = styled.div<{ color: string }>`
+const AvatarCircle = styled.div<{ $bgColor: string }>`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: ${props => props.color};
+  background: ${props => props.$bgColor};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,14 +71,14 @@ const ControlBar = styled.div`
   padding: 8px;
 `;
 
-const ControlButton = styled.button<{ active?: boolean; danger?: boolean }>`
+const ControlButton = styled.button<{ $active?: boolean; $danger?: boolean }>`
   padding: 8px 16px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.2s;
-  background: ${props => props.danger ? '#ef4444' : props.active ? '#22c55e' : '#4b5563'};
+  background: ${props => props.$danger ? '#ef4444' : props.$active ? '#22c55e' : '#4b5563'};
   color: white;
   
   &:hover {
@@ -107,19 +109,38 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
     isHost,
     onLeave
 }) => {
-    const [callObject, setCallObject] = useState<DailyCall | null>(null);
+    const [callObject, setCallObject] = useState<any>(null);
     const [joined, setJoined] = useState(false);
     const [localVideoOn, setLocalVideoOn] = useState(true);
     const [localAudioOn, setLocalAudioOn] = useState(true);
     const [remoteParticipant, setRemoteParticipant] = useState<string | null>(null);
-    const [status, setStatus] = useState('Connecting...');
+    const [status, setStatus] = useState('Loading...');
+    const [sdkLoaded, setSdkLoaded] = useState(false);
 
     const localVideoRef = useRef<HTMLVideoElement>(null);
     const remoteVideoRef = useRef<HTMLVideoElement>(null);
 
-    // Initialize Daily call
+    // Load Daily SDK dynamically
     useEffect(() => {
-        if (!roomUrl || !token) return;
+        const loadDaily = async () => {
+            try {
+                const dailyModule = await import('@daily-co/daily-js');
+                DailyIframe = dailyModule.default;
+                setSdkLoaded(true);
+                console.log('[Daily] SDK loaded successfully');
+            } catch (err) {
+                console.error('[Daily] Failed to load SDK:', err);
+                setStatus('Failed to load video SDK');
+            }
+        };
+        loadDaily();
+    }, []);
+
+    // Initialize Daily call after SDK is loaded
+    useEffect(() => {
+        if (!sdkLoaded || !roomUrl || !token || !DailyIframe) return;
+
+        setStatus('Connecting...');
 
         const daily = DailyIframe.createCallObject({
             audioSource: true,
@@ -141,21 +162,21 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
             console.log('[Daily] Left meeting');
         });
 
-        daily.on('participant-joined', (event) => {
+        daily.on('participant-joined', (event: any) => {
             if (event?.participant && !event.participant.local) {
                 console.log('[Daily] Participant joined:', event.participant.user_name);
                 setRemoteParticipant(event.participant.user_name || 'Participant');
             }
         });
 
-        daily.on('participant-left', (event) => {
+        daily.on('participant-left', (event: any) => {
             if (event?.participant && !event.participant.local) {
                 console.log('[Daily] Participant left:', event.participant.user_name);
                 setRemoteParticipant(null);
             }
         });
 
-        daily.on('track-started', (event) => {
+        daily.on('track-started', (event: any) => {
             if (!event?.participant || !event.track) return;
 
             const { participant, track } = event;
@@ -173,7 +194,7 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
             }
         });
 
-        daily.on('error', (error) => {
+        daily.on('error', (error: any) => {
             console.error('[Daily] Error:', error);
             setStatus('Error: ' + (error?.errorMsg || 'Unknown'));
         });
@@ -183,7 +204,7 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
             .then(() => {
                 console.log('[Daily] Join successful');
             })
-            .catch((err) => {
+            .catch((err: any) => {
                 console.error('[Daily] Join failed:', err);
                 setStatus('Failed to join');
             });
@@ -192,7 +213,7 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
             daily.leave();
             daily.destroy();
         };
-    }, [roomUrl, token, userName]);
+    }, [sdkLoaded, roomUrl, token, userName]);
 
     // Update local video stream when tracks change
     useEffect(() => {
@@ -245,7 +266,7 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
             <VideoWrapper>
                 {!remoteParticipant && (
                     <PlaceholderAvatar>
-                        <AvatarCircle color="linear-gradient(135deg, #f59e0b, #d97706)">
+                        <AvatarCircle $bgColor="linear-gradient(135deg, #f59e0b, #d97706)">
                             👤
                         </AvatarCircle>
                         <span style={{ color: 'white', fontSize: '0.9rem' }}>
@@ -263,7 +284,7 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
             <VideoWrapper style={{ maxHeight: '120px' }}>
                 {!localVideoOn && (
                     <PlaceholderAvatar>
-                        <AvatarCircle color="linear-gradient(135deg, #3b82f6, #1d4ed8)">
+                        <AvatarCircle $bgColor="linear-gradient(135deg, #3b82f6, #1d4ed8)">
                             👤
                         </AvatarCircle>
                         <span style={{ color: 'white', fontSize: '0.8rem' }}>Camera Off</span>
@@ -275,13 +296,13 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
 
             {/* Controls */}
             <ControlBar>
-                <ControlButton active={localVideoOn} onClick={toggleVideo}>
+                <ControlButton $active={localVideoOn} onClick={toggleVideo}>
                     {localVideoOn ? '📹 Video' : '📷 Video Off'}
                 </ControlButton>
-                <ControlButton active={localAudioOn} onClick={toggleAudio}>
+                <ControlButton $active={localAudioOn} onClick={toggleAudio}>
                     {localAudioOn ? '🎤 Mic' : '🔇 Muted'}
                 </ControlButton>
-                <ControlButton danger onClick={handleLeave}>
+                <ControlButton $danger onClick={handleLeave}>
                     📞 Leave
                 </ControlButton>
             </ControlBar>
