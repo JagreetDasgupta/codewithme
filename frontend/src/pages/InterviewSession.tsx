@@ -602,29 +602,7 @@ const InterviewSession: React.FC = () => {
     userRef.current = user;
   }, [hostId, user]);
 
-  // Fetch Daily.co room when admitted to session
-  useEffect(() => {
-    if (!sessionId || !admitted) return;
 
-    const fetchDailyRoom = async () => {
-      try {
-        console.log('[Daily] Fetching room for session:', sessionId);
-        const res = await axios.get(`/api/v1/sessions/${sessionId}/daily-room`);
-        const { roomUrl, token } = res?.data?.data || {};
-        if (roomUrl && token) {
-          console.log('[Daily] Room ready:', roomUrl);
-          setDailyRoomUrl(roomUrl);
-          setDailyToken(token);
-          setDailyError(null);
-        }
-      } catch (error: any) {
-        console.error('[Daily] Failed to fetch room:', error);
-        setDailyError(error?.response?.data?.message || 'Failed to initialize video');
-      }
-    };
-
-    fetchDailyRoom();
-  }, [sessionId, admitted]);
 
   // Ensure remote video is attached whenever we have a stream (handles re-renders)
   useEffect(() => {
@@ -654,6 +632,30 @@ const InterviewSession: React.FC = () => {
   const [dailyRoomUrl, setDailyRoomUrl] = useState<string | null>(null);
   const [dailyToken, setDailyToken] = useState<string | null>(null);
   const [dailyError, setDailyError] = useState<string | null>(null);
+
+  // Fetch Daily.co room when admitted to session
+  useEffect(() => {
+    if (!sessionId || !admitted) return;
+
+    const fetchDailyRoom = async () => {
+      try {
+        console.log('[Daily] Fetching room for session:', sessionId);
+        const res = await axios.get(`/api/v1/sessions/${sessionId}/daily-room`);
+        const { roomUrl, token } = res?.data?.data || {};
+        if (roomUrl && token) {
+          console.log('[Daily] Room ready:', roomUrl);
+          setDailyRoomUrl(roomUrl);
+          setDailyToken(token);
+          setDailyError(null);
+        }
+      } catch (error: any) {
+        console.error('[Daily] Failed to fetch room:', error);
+        setDailyError(error?.response?.data?.message || 'Failed to initialize video');
+      }
+    };
+
+    fetchDailyRoom();
+  }, [sessionId, admitted]);
 
   // Tab state for left panel (Chat, Questions, Whiteboard)
   const [leftPanelTab, _setLeftPanelTab] = useState<'chat' | 'questions' | 'whiteboard'>('chat');
