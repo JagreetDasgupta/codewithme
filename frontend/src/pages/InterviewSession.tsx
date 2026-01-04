@@ -594,11 +594,21 @@ const InterviewSession: React.FC = () => {
   const isHost = !!(user?.id && hostId && user.id === hostId);
   const hostIdRef = useRef(hostId);
   const userRef = useRef(user);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
     hostIdRef.current = hostId;
     userRef.current = user;
   }, [hostId, user]);
+
+  // Ensure remote video is attached whenever we have a stream (handles re-renders)
+  useEffect(() => {
+    if (hasRemoteStream && remoteStreamRef.current && remoteVideoRef.current) {
+      console.log('[WebRTC] Re-attaching remote stream to video element');
+      remoteVideoRef.current.srcObject = remoteStreamRef.current;
+      remoteVideoRef.current.play().catch(e => console.error('[WebRTC] Re-attach play error:', e));
+    }
+  });
 
   // Waiting room and admission states
   const [admitted, setAdmitted] = useState(false);
@@ -1302,6 +1312,7 @@ const InterviewSession: React.FC = () => {
 
       peer.on('stream', remoteStream => {
         console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+        remoteStreamRef.current = remoteStream;
         setHasRemoteStream(true);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
@@ -1348,6 +1359,7 @@ const InterviewSession: React.FC = () => {
 
         peer.on('stream', remoteStream => {
           console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+          remoteStreamRef.current = remoteStream;
           setHasRemoteStream(true);
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = remoteStream;
@@ -1474,6 +1486,7 @@ const InterviewSession: React.FC = () => {
 
               peer.on('stream', remoteStream => {
                 console.log('[WebRTC] Remote stream received (no local stream)! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+                remoteStreamRef.current = remoteStream;
                 setHasRemoteStream(true);
                 if (remoteVideoRef.current) {
                   remoteVideoRef.current.srcObject = remoteStream;
@@ -1510,6 +1523,7 @@ const InterviewSession: React.FC = () => {
 
           peer.on('stream', remoteStream => {
             console.log('[WebRTC] Remote stream received! Tracks:', remoteStream.getTracks().map(t => `${t.kind}:${t.enabled}`));
+            remoteStreamRef.current = remoteStream;
             setHasRemoteStream(true);
             if (remoteVideoRef.current) {
               remoteVideoRef.current.srcObject = remoteStream;
