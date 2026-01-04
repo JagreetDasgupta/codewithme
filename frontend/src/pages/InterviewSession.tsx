@@ -26,6 +26,7 @@ import PlaybackControls, { PlaybackControlsHandle } from '../components/Playback
 import QuestionBank, { Question } from '../components/QuestionBank';
 import Whiteboard, { WhiteboardHandle } from '../components/Whiteboard';
 import { FiHelpCircle, FiEdit3, FiPlay } from 'react-icons/fi';
+import DailyVideo from '../components/DailyVideo';
 
 // Extend window for Monaco access
 declare global {
@@ -601,6 +602,30 @@ const InterviewSession: React.FC = () => {
     userRef.current = user;
   }, [hostId, user]);
 
+  // Fetch Daily.co room when admitted to session
+  useEffect(() => {
+    if (!sessionId || !admitted) return;
+
+    const fetchDailyRoom = async () => {
+      try {
+        console.log('[Daily] Fetching room for session:', sessionId);
+        const res = await axios.get(`/api/v1/sessions/${sessionId}/daily-room`);
+        const { roomUrl, token } = res?.data?.data || {};
+        if (roomUrl && token) {
+          console.log('[Daily] Room ready:', roomUrl);
+          setDailyRoomUrl(roomUrl);
+          setDailyToken(token);
+          setDailyError(null);
+        }
+      } catch (error: any) {
+        console.error('[Daily] Failed to fetch room:', error);
+        setDailyError(error?.response?.data?.message || 'Failed to initialize video');
+      }
+    };
+
+    fetchDailyRoom();
+  }, [sessionId, admitted]);
+
   // Ensure remote video is attached whenever we have a stream (handles re-renders)
   useEffect(() => {
     if (hasRemoteStream && remoteStreamRef.current && remoteVideoRef.current) {
@@ -624,6 +649,11 @@ const InterviewSession: React.FC = () => {
   const [statusText, setStatusText] = useState('');
   const [ready, setReady] = useState(false);
   const [hasRemoteStream, setHasRemoteStream] = useState(false);
+
+  // Daily.co video room state
+  const [dailyRoomUrl, setDailyRoomUrl] = useState<string | null>(null);
+  const [dailyToken, setDailyToken] = useState<string | null>(null);
+  const [dailyError, setDailyError] = useState<string | null>(null);
 
   // Tab state for left panel (Chat, Questions, Whiteboard)
   const [leftPanelTab, _setLeftPanelTab] = useState<'chat' | 'questions' | 'whiteboard'>('chat');
@@ -2922,136 +2952,46 @@ const InterviewSession: React.FC = () => {
                       </button>
                     </div>
                   </div>
-                  <VideoContainer>
-                    {/* Local Video Tile with Speaking Indicator */}
+                  {/* Daily.co Video - Replaces old WebRTC implementation */}
+                  {dailyRoomUrl && dailyToken ? (
+                    <DailyVideo
+                      roomUrl={dailyRoomUrl}
+                      token={dailyToken}
+                      userName={user?.name || 'Anonymous'}
+                      isHost={isHost}
+                    />
+                  ) : dailyError ? (
                     <div style={{
-                      position: 'relative',
-                      width: 'calc(50% - 0.25rem)',
-                      minWidth: '100px',
-                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '200px',
+                      background: 'linear-gradient(135deg, #374151, #1f2937)',
                       borderRadius: '8px',
-                      overflow: 'hidden',
-                      border: isLocalSpeaking ? '3px solid #22c55e' : '3px solid transparent',
-                      boxShadow: isLocalSpeaking ? '0 0 12px rgba(34, 197, 94, 0.6)' : 'none',
-                      transition: 'border 0.2s, box-shadow 0.2s',
+                      color: '#ef4444',
+                      padding: '1rem',
+                      textAlign: 'center'
                     }}>
-                      {/* Avatar Placeholder when Camera Off */}
-                      {isVideoOff && (
-                        <div style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          bottom: 0,
-                          background: 'linear-gradient(135deg, #374151, #1f2937)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 1
-                        }}>
-                          <div style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '24px',
-                            color: 'white',
-                            marginBottom: '0.5rem'
-                          }}>
-                            👤
-                          </div>
-                          <span style={{ color: 'white', fontSize: '0.9rem', fontWeight: 500 }}>You</span>
-                        </div>
-                      )}
-                      <VideoTile ref={localVideoRef} autoPlay muted playsInline style={{ opacity: isVideoOff ? 0 : 1, width: '100%', height: '100%' }} />
-                      {/* Name Label */}
-                      <div style={{
-                        position: 'absolute',
-                        bottom: '8px',
-                        left: '8px',
-                        background: 'rgba(0, 0, 0, 0.6)',
-                        color: 'white',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.7rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px'
-                      }}>
-                        {isLocalSpeaking && <span style={{ color: '#22c55e' }}>🔊</span>}
-                        You {isHost ? '(Host)' : ''} {isMuted && '(Muted)'}
-                      </div>
+                      <span style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</span>
+                      <span>{dailyError}</span>
+                      <span style={{ fontSize: '0.8rem', color: '#9ca3af', marginTop: '0.5rem' }}>
+                        Check DAILY_API_KEY in backend environment
+                      </span>
                     </div>
-
-                    {/* Remote Video Tile with Speaking Indicator */}
+                  ) : (
                     <div style={{
-                      position: 'relative',
-                      width: 'calc(50% - 0.25rem)',
-                      minWidth: '100px',
-                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      height: '200px',
+                      background: 'linear-gradient(135deg, #374151, #1f2937)',
                       borderRadius: '8px',
-                      overflow: 'hidden',
-                      border: isRemoteSpeaking ? '3px solid #22c55e' : '3px solid transparent',
-                      boxShadow: isRemoteSpeaking ? '0 0 12px rgba(34, 197, 94, 0.6)' : 'none',
-                      transition: 'border 0.2s, box-shadow 0.2s',
-                      background: '#1f2937'
+                      color: '#9ca3af'
                     }}>
-                      {/* Default Avatar for Remote (shown when no remote stream) */}
-                      <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'linear-gradient(135deg, #374151, #1f2937)',
-                        display: hasRemoteStream ? 'none' : 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}>
-                        <div style={{
-                          width: '60px',
-                          height: '60px',
-                          borderRadius: '50%',
-                          background: 'linear-gradient(135deg, #f59e0b, #d97706)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '24px',
-                          color: 'white',
-                          marginBottom: '0.5rem'
-                        }}>
-                          👤
-                        </div>
-                        <span style={{ color: 'white', fontSize: '0.9rem', fontWeight: 500 }}>{isHost ? 'Participant' : 'Host'}</span>
-                      </div>
-                      <VideoTile ref={remoteVideoRef} autoPlay playsInline style={{ position: 'relative', zIndex: 1, width: '100%', height: '100%' }} />
-                      {/* Name Label */}
-                      <div style={{
-                        position: 'absolute',
-                        bottom: '8px',
-                        left: '8px',
-                        background: 'rgba(0, 0, 0, 0.6)',
-                        color: 'white',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.7rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        zIndex: 2
-                      }}>
-                        {isRemoteSpeaking && <span style={{ color: '#22c55e' }}>🔊</span>}
-                        {participants.length > 0
-                          ? `${participants[0]?.username || (isHost ? 'Participant' : 'Host')}${!isHost ? ' (Host)' : ''}`
-                          : (isHost ? 'Waiting for participant...' : 'Host (Host)')}
-                      </div>
+                      <span>Loading video...</span>
                     </div>
-                  </VideoContainer>
+                  )}
                 </VideoPanel>
               </div>
 
