@@ -1,89 +1,24 @@
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-
-// Dynamic import to avoid bundling issues
-let DailyIframe: any = null;
 
 const VideoContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
   height: 100%;
-`;
-
-const VideoWrapper = styled.div`
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  background: linear-gradient(135deg, #1f2937, #374151);
-  flex: 1;
-  min-height: 120px;
-`;
-
-const VideoElement = styled.video`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 12px;
-`;
-
-const PlaceholderAvatar = styled.div`
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #374151, #1f2937);
-`;
-
-const AvatarCircle = styled.div<{ $bgColor: string }>`
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: ${props => props.$bgColor};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: white;
-  margin-bottom: 0.5rem;
-`;
-
-const NameLabel = styled.div`
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: rgba(0, 0, 0, 0.6);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  color: white;
-`;
-
-const ControlBar = styled.div`
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  padding: 8px;
-`;
-
-const ControlButton = styled.button<{ $active?: boolean; $danger?: boolean }>`
-  padding: 8px 16px;
+  background: #1f2937;
   border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.2s;
-  background: ${props => props.$danger ? '#ef4444' : props.$active ? '#22c55e' : '#4b5563'};
-  color: white;
+  overflow: hidden;
+`;
+
+const IframeWrapper = styled.div`
+  flex: 1;
+  min-height: 300px;
   
-  &:hover {
-    opacity: 0.9;
-    transform: scale(1.02);
+  iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    border-radius: 8px;
   }
 `;
 
@@ -92,6 +27,20 @@ const StatusText = styled.div`
   color: #9ca3af;
   font-size: 0.85rem;
   padding: 8px;
+  background: #374151;
+`;
+
+const ErrorBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  background: linear-gradient(135deg, #374151, #1f2937);
+  border-radius: 8px;
+  color: #ef4444;
+  padding: 1rem;
+  text-align: center;
 `;
 
 interface DailyVideoProps {
@@ -106,207 +55,64 @@ export const DailyVideo: React.FC<DailyVideoProps> = ({
     roomUrl,
     token,
     userName,
-    isHost,
-    onLeave
+    isHost
 }) => {
-    const [callObject, setCallObject] = useState<any>(null);
-    const [joined, setJoined] = useState(false);
-    const [localVideoOn, setLocalVideoOn] = useState(true);
-    const [localAudioOn, setLocalAudioOn] = useState(true);
-    const [remoteParticipant, setRemoteParticipant] = useState<string | null>(null);
-    const [status, setStatus] = useState('Loading...');
-    const [sdkLoaded, setSdkLoaded] = useState(false);
+    const iframeRef = useRef<HTMLIFrameElement>(null);
+    const [status, setStatus] = useState('Loading video...');
+    const [error, setError] = useState<string | null>(null);
 
-    const localVideoRef = useRef<HTMLVideoElement>(null);
-    const remoteVideoRef = useRef<HTMLVideoElement>(null);
+    // Build the Daily Prebuilt URL with token
+    const prebuiltUrl = roomUrl ? `${roomUrl}?t=${token}&userName=${encodeURIComponent(userName)}` : null;
 
-    // Load Daily SDK dynamically
     useEffect(() => {
-        const loadDaily = async () => {
-            try {
-                const dailyModule = await import('@daily-co/daily-js');
-                DailyIframe = dailyModule.default;
-                setSdkLoaded(true);
-                console.log('[Daily] SDK loaded successfully');
-            } catch (err) {
-                console.error('[Daily] Failed to load SDK:', err);
-                setStatus('Failed to load video SDK');
-            }
-        };
-        loadDaily();
-    }, []);
-
-    // Initialize Daily call after SDK is loaded
-    useEffect(() => {
-        if (!sdkLoaded || !roomUrl || !token || !DailyIframe) return;
-
-        setStatus('Connecting...');
-
-        const daily = DailyIframe.createCallObject({
-            audioSource: true,
-            videoSource: true,
-        });
-
-        setCallObject(daily);
-
-        // Event handlers
-        daily.on('joined-meeting', () => {
-            setJoined(true);
-            setStatus('Connected');
-            console.log('[Daily] Joined meeting');
-        });
-
-        daily.on('left-meeting', () => {
-            setJoined(false);
-            setStatus('Disconnected');
-            console.log('[Daily] Left meeting');
-        });
-
-        daily.on('participant-joined', (event: any) => {
-            if (event?.participant && !event.participant.local) {
-                console.log('[Daily] Participant joined:', event.participant.user_name);
-                setRemoteParticipant(event.participant.user_name || 'Participant');
-            }
-        });
-
-        daily.on('participant-left', (event: any) => {
-            if (event?.participant && !event.participant.local) {
-                console.log('[Daily] Participant left:', event.participant.user_name);
-                setRemoteParticipant(null);
-            }
-        });
-
-        daily.on('track-started', (event: any) => {
-            if (!event?.participant || !event.track) return;
-
-            const { participant, track } = event;
-            console.log('[Daily] Track started:', participant.local ? 'local' : 'remote', track.kind);
-
-            if (track.kind === 'video') {
-                const stream = new MediaStream([track]);
-                if (participant.local && localVideoRef.current) {
-                    localVideoRef.current.srcObject = stream;
-                    localVideoRef.current.play().catch(console.error);
-                } else if (!participant.local && remoteVideoRef.current) {
-                    remoteVideoRef.current.srcObject = stream;
-                    remoteVideoRef.current.play().catch(console.error);
-                }
-            }
-        });
-
-        daily.on('error', (error: any) => {
-            console.error('[Daily] Error:', error);
-            setStatus('Error: ' + (error?.errorMsg || 'Unknown'));
-        });
-
-        // Join the room
-        daily.join({ url: roomUrl, token, userName })
-            .then(() => {
-                console.log('[Daily] Join successful');
-            })
-            .catch((err: any) => {
-                console.error('[Daily] Join failed:', err);
-                setStatus('Failed to join');
-            });
-
-        return () => {
-            daily.leave();
-            daily.destroy();
-        };
-    }, [sdkLoaded, roomUrl, token, userName]);
-
-    // Update local video stream when tracks change
-    useEffect(() => {
-        if (!callObject || !joined) return;
-
-        const participants = callObject.participants();
-        const local = participants.local;
-
-        if (local?.tracks?.video?.track && localVideoRef.current) {
-            const stream = new MediaStream([local.tracks.video.track]);
-            localVideoRef.current.srcObject = stream;
-            localVideoRef.current.play().catch(console.error);
+        if (prebuiltUrl) {
+            setStatus('Connecting to video room...');
+            console.log('[Daily] Loading prebuilt URL:', prebuiltUrl);
         }
+    }, [prebuiltUrl]);
 
-        // Check for remote participants
-        Object.values(participants).forEach((p: any) => {
-            if (!p.local && p.tracks?.video?.track && remoteVideoRef.current) {
-                const stream = new MediaStream([p.tracks.video.track]);
-                remoteVideoRef.current.srcObject = stream;
-                remoteVideoRef.current.play().catch(console.error);
-                setRemoteParticipant(p.user_name || 'Participant');
-            }
-        });
-    }, [callObject, joined]);
+    // Handle iframe load
+    const handleLoad = () => {
+        setStatus(`Connected as ${isHost ? 'Host' : 'Participant'}`);
+        console.log('[Daily] Prebuilt iframe loaded');
+    };
 
-    const toggleVideo = useCallback(() => {
-        if (callObject) {
-            callObject.setLocalVideo(!localVideoOn);
-            setLocalVideoOn(!localVideoOn);
-        }
-    }, [callObject, localVideoOn]);
+    const handleError = () => {
+        setError('Failed to load video room');
+        console.error('[Daily] Prebuilt iframe error');
+    };
 
-    const toggleAudio = useCallback(() => {
-        if (callObject) {
-            callObject.setLocalAudio(!localAudioOn);
-            setLocalAudioOn(!localAudioOn);
-        }
-    }, [callObject, localAudioOn]);
+    if (error) {
+        return (
+            <VideoContainer>
+                <ErrorBox>
+                    <span style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>⚠️</span>
+                    <span>{error}</span>
+                </ErrorBox>
+            </VideoContainer>
+        );
+    }
 
-    const handleLeave = useCallback(() => {
-        if (callObject) {
-            callObject.leave();
-        }
-        onLeave?.();
-    }, [callObject, onLeave]);
+    if (!prebuiltUrl) {
+        return (
+            <VideoContainer>
+                <StatusText>Initializing video...</StatusText>
+            </VideoContainer>
+        );
+    }
 
     return (
         <VideoContainer>
-            {/* Remote Video */}
-            <VideoWrapper>
-                {!remoteParticipant && (
-                    <PlaceholderAvatar>
-                        <AvatarCircle $bgColor="linear-gradient(135deg, #f59e0b, #d97706)">
-                            👤
-                        </AvatarCircle>
-                        <span style={{ color: 'white', fontSize: '0.9rem' }}>
-                            {isHost ? 'Waiting for participant...' : 'Waiting for host...'}
-                        </span>
-                    </PlaceholderAvatar>
-                )}
-                <VideoElement ref={remoteVideoRef} autoPlay playsInline />
-                {remoteParticipant && (
-                    <NameLabel>{remoteParticipant} {!isHost && '(Host)'}</NameLabel>
-                )}
-            </VideoWrapper>
-
-            {/* Local Video */}
-            <VideoWrapper style={{ maxHeight: '120px' }}>
-                {!localVideoOn && (
-                    <PlaceholderAvatar>
-                        <AvatarCircle $bgColor="linear-gradient(135deg, #3b82f6, #1d4ed8)">
-                            👤
-                        </AvatarCircle>
-                        <span style={{ color: 'white', fontSize: '0.8rem' }}>Camera Off</span>
-                    </PlaceholderAvatar>
-                )}
-                <VideoElement ref={localVideoRef} autoPlay playsInline muted />
-                <NameLabel>You {isHost && '(Host)'}</NameLabel>
-            </VideoWrapper>
-
-            {/* Controls */}
-            <ControlBar>
-                <ControlButton $active={localVideoOn} onClick={toggleVideo}>
-                    {localVideoOn ? '📹 Video' : '📷 Video Off'}
-                </ControlButton>
-                <ControlButton $active={localAudioOn} onClick={toggleAudio}>
-                    {localAudioOn ? '🎤 Mic' : '🔇 Muted'}
-                </ControlButton>
-                <ControlButton $danger onClick={handleLeave}>
-                    📞 Leave
-                </ControlButton>
-            </ControlBar>
-
+            <IframeWrapper>
+                <iframe
+                    ref={iframeRef}
+                    src={prebuiltUrl}
+                    allow="camera; microphone; fullscreen; display-capture"
+                    onLoad={handleLoad}
+                    onError={handleError}
+                    title="Video Call"
+                />
+            </IframeWrapper>
             <StatusText>{status}</StatusText>
         </VideoContainer>
     );
