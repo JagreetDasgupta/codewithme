@@ -31,36 +31,48 @@ const StatusText = styled.div`
 `;
 
 interface JitsiVideoProps {
-    sessionId: string;
-    userName: string;
-    isHost: boolean;
+  sessionId: string;
+  userName: string;
+  isHost: boolean;
 }
 
 export const JitsiVideo: React.FC<JitsiVideoProps> = ({
-    sessionId,
-    userName,
-    isHost
+  sessionId,
+  userName,
+  isHost
 }) => {
-    // Create a unique room name based on session ID
-    const roomName = `codewithme-${sessionId}`;
+  // Create a unique room name based on session ID
+  const roomName = `codewithme-${sessionId}`;
 
-    // Jitsi Meet URL with configuration
-    const jitsiUrl = `https://meet.jit.si/${roomName}#userInfo.displayName="${encodeURIComponent(userName)}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=false&config.startWithVideoMuted=false`;
+  // Jitsi Meet URL with configuration to auto-join and minimize UI
+  const jitsiUrl = `https://meet.jit.si/${roomName}` +
+    `#userInfo.displayName="${encodeURIComponent(userName)}"` +
+    `&config.prejoinPageEnabled=false` +
+    `&config.startWithAudioMuted=false` +
+    `&config.startWithVideoMuted=false` +
+    `&config.disableDeepLinking=true` +
+    `&config.hideConferenceSubject=true` +
+    `&config.hideConferenceTimer=true` +
+    `&interfaceConfig.SHOW_JITSI_WATERMARK=false` +
+    `&interfaceConfig.SHOW_WATERMARK_FOR_GUESTS=false` +
+    `&interfaceConfig.SHOW_BRAND_WATERMARK=false` +
+    `&interfaceConfig.TOOLBAR_BUTTONS=["microphone","camera","hangup"]` +
+    `&interfaceConfig.DISABLE_JOIN_LEAVE_NOTIFICATIONS=true`;
 
-    return (
-        <VideoContainer>
-            <IframeWrapper>
-                <iframe
-                    src={jitsiUrl}
-                    allow="camera; microphone; fullscreen; display-capture; autoplay"
-                    title="Video Call"
-                />
-            </IframeWrapper>
-            <StatusText>
-                {isHost ? 'Host' : 'Participant'} - Room: {roomName}
-            </StatusText>
-        </VideoContainer>
-    );
+  return (
+    <VideoContainer>
+      <IframeWrapper>
+        <iframe
+          src={jitsiUrl}
+          allow="camera; microphone; fullscreen; display-capture; autoplay"
+          title="Video Call"
+        />
+      </IframeWrapper>
+      <StatusText>
+        {isHost ? 'Host' : 'Participant'} - Room: {roomName}
+      </StatusText>
+    </VideoContainer>
+  );
 };
 
 export default JitsiVideo;
