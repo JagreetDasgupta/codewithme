@@ -592,6 +592,13 @@ const InterviewSession: React.FC = () => {
   const [participants, setParticipants] = useState<{ userId: string; username: string; socketId: string }[]>([]);
   const [hostId, setHostId] = useState<string | null>(null);
   const isHost = !!(user?.id && hostId && user.id === hostId);
+  const hostIdRef = useRef(hostId);
+  const userRef = useRef(user);
+
+  useEffect(() => {
+    hostIdRef.current = hostId;
+    userRef.current = user;
+  }, [hostId, user]);
 
   // Waiting room and admission states
   const [admitted, setAdmitted] = useState(false);
@@ -1368,7 +1375,9 @@ const InterviewSession: React.FC = () => {
 
       // Only the HOST should create an initiator peer when a participant joins
       // The participant will receive a signal from the host and respond as non-initiator
-      const isCreator = !!(user?.id && hostId && user.id === hostId);
+      const currentHostId = hostIdRef.current;
+      const currentUser = userRef.current;
+      const isCreator = !!(currentUser?.id && currentHostId && currentUser.id === currentHostId);
       if (!isCreator) {
         console.log('[WebRTC] Not host, ignoring user-joined for peer creation');
         return;
@@ -1513,10 +1522,12 @@ const InterviewSession: React.FC = () => {
         }
 
         // Still join even if media fails
-        const isCreator = !!(user?.id && hostId && user.id === hostId);
+        const currentUser = userRef.current;
+        const currentHostId = hostIdRef.current;
+        const isCreator = !!(currentUser?.id && currentHostId && currentUser.id === currentHostId);
         socket.emit('join-session', {
           sessionId,
-          username: user?.name,
+          username: currentUser?.name,
           isCreator
         });
         setStatusText('Joining session (No Camera)');
@@ -1524,11 +1535,15 @@ const InterviewSession: React.FC = () => {
 
     // Handle focus-change broadcasts
     socket.on('focus-change', ({ index, userId, username }: any) => {
+      const currentHostId = hostIdRef.current;
+      const currentUser = userRef.current;
+      const amIHost = !!(currentUser?.id && currentHostId && currentUser.id === currentHostId);
+
       // Apply only host changes if you're not host; ignore non-host when you are host
-      if (!isHost && hostId && userId === hostId) {
+      if (!amIHost && currentHostId && userId === currentHostId) {
         setCurrentFile(index);
         addActivity(`Host changed focus to file #${index} `);
-      } else if (isHost && hostId && userId !== hostId) {
+      } else if (amIHost && currentHostId && userId !== currentHostId) {
         addActivity(`Ignored focus change from ${username} (host priority)`);
       }
     });
@@ -1589,18 +1604,15 @@ const InterviewSession: React.FC = () => {
       socket.off('problem-statement-update');
       socket.off('file-update');
       socket.off('run-result');
-      // Only disconnect socket and destroy peer if component is actually unmounting
-      // We know it's unmounting if sessionId changes, not just hostId
-      if (!sessionId) {
-        socket.disconnect();
-        if (peerRef.current) {
-          peerRef.current.destroy();
-          peerRef.current = null;
-        }
+      // Always cleanup to ensure clean state on re-runs
+      socket.disconnect();
+      if (peerRef.current) {
+        peerRef.current.destroy();
+        peerRef.current = null;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId, token, API_BASE, hostId]); // Note: hostId needed for join logic, but peer cleanup is conditional
+  }, [sessionId, token, API_BASE, hostId]);
 
   // Set up Monaco editor binding
   const handleEditorDidMount = (editor: any, monaco: any) => {
